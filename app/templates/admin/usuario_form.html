@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if usuario else 'Nuevo' }} usuario | Impulsa{% endblock %}
+{% block contenido %}
+<section class="admin-seccion"><div class="contenedor formulario-contenedor">
+    <a class="volver" href="{{ url_for('admin.usuarios') }}">← Volver a usuarios</a>
+    <div class="formulario-cabecera"><span class="acceso-icono azul">👤</span><div><h1>{{ 'Editar usuario' if usuario else 'Registrar usuario' }}</h1><p>{{ 'Actualiza los datos de la cuenta.' if usuario else 'Crea una cuenta para un estudiante, docente o administrador.' }}</p></div></div>
+    <form class="formulario-usuario" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="campos-grid">
+            <label>Nombres<input name="nombres" maxlength="100" required value="{{ request.form.get('nombres', usuario.nombres if usuario else '') }}" placeholder="Nombres completos"></label>
+            <label>Apellidos<input name="apellidos" maxlength="100" required value="{{ request.form.get('apellidos', usuario.apellidos if usuario else '') }}" placeholder="Apellidos completos"></label>
+            <label>Correo electrónico<input name="correo" type="email" maxlength="150" required value="{{ request.form.get('correo', usuario.correo if usuario else '') }}" placeholder="usuario@correo.com"></label>
+            <label>Carnet <small>(opcional)</small><input name="carnet" maxlength="30" value="{{ request.form.get('carnet', usuario.carnet if usuario and usuario.carnet else '') }}" placeholder="Número de carnet"></label>
+            <label>Rol<select name="rol_id" required><option value="">Selecciona un rol</option>{% for rol in roles %}<option value="{{ rol.id }}" {% if request.form.get('rol_id', usuario.rol_id|string if usuario else '')|string == rol.id|string %}selected{% endif %}>{{ rol.nombre|capitalize }}</option>{% endfor %}</select></label>
+            <label>{{ 'Nueva contraseña' if usuario else 'Contraseña' }} <small>{{ '(dejar vacía para conservarla)' if usuario else '(mínimo 8 caracteres)' }}</small><input name="password" type="password" minlength="8" {% if not usuario %}required{% endif %} autocomplete="new-password" placeholder="••••••••"></label>
+        </div>
+        <div class="acciones-formulario"><a href="{{ url_for('admin.usuarios') }}">Cancelar</a><button class="boton boton-primario" type="submit">{{ 'Guardar cambios' if usuario else 'Crear usuario' }}</button></div>
+    </form>
+</div></section>
+{% endblock %}

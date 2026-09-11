@@ -1,0 +1,32 @@
+{% extends "base.html" %}{% block title %}Asistente de IA | Impulsa{% endblock %}
+{% block contenido %}<section class="admin-seccion"><div class="contenedor asistente-contenedor">
+<a class="volver" href="{{ url_for('trabajo.actividad', actividad_id=actividad.id) }}">← Volver a la actividad</a>
+<div class="asistente-cabecera"><div><h1>Asistente de aprendizaje · Groq</h1><p>{{ actividad.titulo }}</p></div></div>
+<div class="acciones-ia-actividad"><a class="boton boton-primario" href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer">Abrir Gemini ↗</a><a class="boton-mini" href="{{ url_for('ia.nueva', actividad_id=actividad.id, proveedor='Google Gemini') }}">Registrar uso de Gemini</a></div><p class="ayuda-campo">Gemini se abre fuera de Impulsa con tu propia cuenta de Google. La conversación no se guarda automáticamente aquí: vuelve y registra la consulta, la respuesta y cómo la verificaste. No necesitas configurar una clave API para este enlace.</p>
+<div class="principio-ia"><span>🧭</span><div><strong>La IA te orienta; tú decides y verificas.</strong><p>Tu consulta se enviará a Groq. Si responde, la consulta y respuesta se guardan en Impulsa; después registra tu verificación. No envíes contraseñas ni datos personales.</p></div></div>
+<form class="consulta-ia" method="post">
+<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+<p class="ayuda-campo">{{ 'Asistente Groq disponible.' if api_configurada else 'Falta configurar la clave de Groq en el servidor.' }}</p>
+<label>Tipo de ayuda<select name="tipo_ayuda" required>{% for valor, nombre in tipos.items() %}<option value="{{ valor }}" {% if request.form.get('tipo_ayuda', 'explicacion') == valor %}selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
+<label>¿En qué necesitas orientación?<textarea name="consulta" rows="5" maxlength="6000" required placeholder="Describe tu duda y lo que has intentado">{{ request.form.get('consulta', '') }}</textarea></label>
+<label>Código relacionado (opcional)<textarea name="codigo_enviado" rows="5" maxlength="12000">{{ request.form.get('codigo_enviado', '') }}</textarea></label>
+<button class="boton boton-primario" type="submit" {% if not api_configurada %}disabled{% endif %}>Consultar al asistente ✨</button>
+<p class="ayuda-campo">La cuota del proveedor se comparte. Se atiende una consulta a la vez en este servidor. El tiempo registrado es el tiempo de respuesta, no una medida de comprensión.</p>
+</form>
+<div class="chat-historial">
+<div class="historial-titulo"><div><h2>Historial de preguntas</h2><p>Abre una conversación para consultar la respuesta y su verificación.</p></div><span>{{ interacciones|length }} {{ 'registro' if interacciones|length == 1 else 'registros' }}</span></div>
+{% for item in interacciones %}
+<details class="conversacion-acordeon {% if request.args.get('nueva')|int == item.id %}nueva{% endif %}">
+<summary><span class="conversacion-icono">💬</span><span class="conversacion-resumen"><small>{{ tipos.get(item.tipo_ayuda,item.tipo_ayuda) }} · {{ item.creado_en.strftime('%d/%m/%Y %H:%M') }}</small><strong>{{ item.consulta|truncate(100, True, '…') }}</strong></span><span class="estado-ia estado-{{ item.estado }}">{% if item.estado == 'pendiente' %}Pendiente de verificar{% elif item.estado == 'completada' %}Verificada{% else %}No funcionó{% endif %}</span><span class="conversacion-accion">Ver conversación</span></summary>
+<div class="conversacion-contenido">
+<section class="bloque-pregunta"><span>Tu pregunta</span><p>{{ item.consulta }}</p>{% if item.codigo_enviado %}<details class="codigo-acordeon"><summary>Ver código enviado</summary><pre>{{ item.codigo_enviado }}</pre></details>{% endif %}</section>
+<section class="bloque-respuesta"><div class="bloque-etiqueta"><span>✨ Respuesta de {{ item.proveedor or 'IA' }}</span><small>{{ item.modelo }}</small></div><div class="respuesta-markdown">{{ item.respuesta|markdown_seguro }}</div></section>
+{% if item.estado == 'pendiente' %}
+<form class="verificar-ia" method="post" action="{{ url_for('ia.validar_respuesta', interaccion_id=item.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><div class="bloque-etiqueta"><span>✓ Tu verificación</span><small>Pendiente</small></div><p class="ayuda-verificacion">Después de probar la orientación, registra el resultado con tus propias palabras.</p><label>Resultado<select name="estado" required><option value="">Selecciona el resultado</option><option value="completada">La comprobé y fue útil</option><option value="fallida">La comprobé y no funcionó</option></select></label><label>¿Qué aplicaste o modificaste? <small>(opcional)</small><textarea class="campo-codigo" name="codigo_modificado" rows="3"></textarea></label><label>¿Cómo la verificaste?<textarea name="verificacion" rows="3" required placeholder="Ej. Ejecuté pruebas y comparé el resultado esperado..."></textarea></label><button class="boton-mini" type="submit">Guardar verificación</button></form>
+{% else %}
+<section class="verificacion-lista"><div class="bloque-etiqueta"><span>✓ Tu verificación</span><span class="estado-ia estado-{{ item.estado }}">{{ 'Comprobada y útil' if item.estado == 'completada' else 'Comprobada: no funcionó' }}</span></div>{% if item.codigo_modificado %}<div class="verificacion-dato"><strong>Qué aplicaste o modificaste</strong><pre>{{ item.codigo_modificado }}</pre></div>{% endif %}<div class="verificacion-dato"><strong>Cómo la verificaste</strong><p>{{ item.error_tecnico }}</p></div></section>
+{% endif %}
+</div></details>
+{% else %}<div class="estado-vacio compacto"><span>💬</span><h2>Aún no hay conversaciones</h2><p>Escribe tu primera pregunta en el asistente.</p></div>{% endfor %}
+</div>
+</div></section>{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Usuarios | Impulsa{% endblock %}
+{% block contenido %}
+<section class="admin-seccion"><div class="contenedor">
+    <div class="admin-cabecera">
+        <div><a class="volver" href="{{ url_for('auth.panel') }}">← Volver al panel</a><h1>Gestión de usuarios</h1><p>Administra estudiantes, docentes y cuentas administrativas.</p></div>
+        <div class="acciones-importacion"><a class="boton boton-secundario" href="{{ url_for('admin.plantilla_usuarios') }}">Descargar plantilla CSV</a><a class="boton boton-primario" href="{{ url_for('admin.nuevo_usuario') }}">+ Nuevo usuario</a></div>
+    </div>
+    <form class="importador-csv" method="post" action="{{ url_for('admin.importar_usuarios') }}" enctype="multipart/form-data"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><div><strong>Importación rápida de estudiantes</strong><small>La columna curso_codigo los inscribe automáticamente. Puedes agregar ahora a todo el grupo y después a los repitentes.</small></div><label><span>Elegir CSV</span><input type="file" name="archivo_csv" accept=".csv,text/csv" required></label><button class="boton boton-primario" type="submit">Importar estudiantes</button></form>
+    <div class="herramientas-usuarios">
+        <form class="buscador" method="get"><input name="buscar" value="{{ buscar }}" placeholder="Buscar por nombre, correo, carnet o rol"><button type="submit">Buscar</button>{% if buscar %}<a href="{{ url_for('admin.usuarios') }}">Limpiar</a>{% endif %}</form>
+        <span>{{ usuarios|length }} usuario{% if usuarios|length != 1 %}s{% endif %}</span>
+    </div>
+    <div class="tabla-contenedor"><table class="tabla-usuarios">
+        <thead><tr><th>Usuario</th><th>Rol</th><th>Carnet</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody>{% for usuario in usuarios %}<tr>
+            <td><div class="celda-usuario"><span>{{ usuario.nombres[0] }}{{ usuario.apellidos[0] }}</span><div><strong>{{ usuario.nombres }} {{ usuario.apellidos }}</strong><small>{{ usuario.correo }}</small></div></div></td>
+            <td><span class="insignia rol-{{ usuario.rol.nombre }}">{{ usuario.rol.nombre }}</span></td>
+            <td>{{ usuario.carnet or '—' }}</td>
+            <td><span class="estado-cuenta {{ 'activo' if usuario.activo else 'inactivo' }}">{{ 'Activo' if usuario.activo else 'Inactivo' }}</span></td>
+            <td><div class="acciones-tabla"><a href="{{ url_for('admin.editar_usuario', usuario_id=usuario.id) }}">Editar</a><form method="post" action="{{ url_for('admin.cambiar_estado', usuario_id=usuario.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button type="submit" {% if usuario.id == usuario_actual.id %}disabled title="No puedes cambiar tu propia cuenta"{% endif %}>{{ 'Desactivar' if usuario.activo else 'Activar' }}</button></form></div></td>
+        </tr>{% else %}<tr><td colspan="5" class="sin-resultados">No se encontraron usuarios.</td></tr>{% endfor %}</tbody>
+    </table></div>
+</div></section>
+{% endblock %}

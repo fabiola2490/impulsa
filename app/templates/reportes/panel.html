@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Reportes e indicadores | Impulsa{% endblock %}
+{% block contenido %}
+<section class="admin-seccion"><div class="contenedor reportes-contenedor">
+<a class="volver" href="{{ url_for('auth.panel') }}">← Volver al panel</a>
+<div class="reporte-cabecera"><div><span class="etiqueta">Seguimiento académico</span><h1>Reportes e indicadores</h1><p>Consulta el progreso, tiempo de trabajo, evidencias y uso responsable de IA.</p></div>{% if cursos %}<form method="get"><label>Curso<select name="curso_id" onchange="this.form.submit()">{% for item in cursos %}<option value="{{ item.id }}" {% if curso and item.id == curso.id %}selected{% endif %}>{{ item.codigo }} · {{ item.nombre }}</option>{% endfor %}</select></label></form>{% endif %}</div>
+{% if not curso %}<div class="estado-vacio"><span>📊</span><h2>No hay cursos disponibles</h2><p>Cuando tengas un curso asignado, sus indicadores aparecerán aquí.</p></div>{% else %}
+<div class="reporte-curso"><div><span>{{ curso.codigo }}</span><h2>{{ curso.nombre }}</h2><p>{{ curso.ciclo or 'Ciclo sin especificar' }} · {{ curso.anio }} · Docente: {{ docente.nombres }} {{ docente.apellidos }}</p></div><strong>{{ metricas.estudiantes }} estudiantes</strong></div>
+<div class="metricas-reporte">
+<article><span>👥</span><div><small>Estudiantes</small><strong>{{ metricas.estudiantes }}</strong><p>inscritos activos</p></div></article>
+<article><span>⏱️</span><div><small>Tiempo registrado</small><strong>{{ metricas.segundos|duracion_legible }}</strong><p>{{ metricas.sesiones }} sesiones</p></div></article>
+<article><span>📈</span><div><small>Avance promedio</small><strong>{{ metricas.avance }}%</strong><p>{{ metricas.actividades }} actividades</p></div></article>
+<article><span>📎</span><div><small>Evidencias</small><strong>{{ metricas.evidencias }}</strong><p>archivos y enlaces</p></div></article>
+</div>
+<section class="objetivos-reporte" aria-labelledby="titulo-objetivos">
+    <div class="objetivos-cabecera">
+        <div><span class="sobrelinea">Medición de resultados</span><h2 id="titulo-objetivos">Cumplimiento de objetivos específicos</h2><p>Los porcentajes se calculan automáticamente con los registros del curso seleccionado.</p></div>
+        <span class="objetivos-leyenda">Escala de cumplimiento: 0–100%</span>
+    </div>
+    <div class="objetivos-grid">
+        {% for objetivo in objetivos %}
+        <article class="objetivo-card objetivo-{{ objetivo.color }}">
+            <div class="objetivo-identidad"><span>{{ objetivo.codigo }}</span><small>Objetivo específico</small></div>
+            <h3>{{ objetivo.titulo }}</h3>
+            <p class="objetivo-descripcion">{{ objetivo.descripcion }}</p>
+
+            {% if objetivo.tipo == 'dona' %}
+            <div class="grafica-dona {{ objetivo.color }}" style="--porcentaje:{{ objetivo.porcentaje }}" role="img" aria-label="{{ objetivo.titulo }}: {{ objetivo.porcentaje }} por ciento">
+                <div><strong>{{ objetivo.porcentaje }}%</strong><span>Cumplimiento</span></div>
+            </div>
+            <div class="leyenda-dona"><span><i class="cumplido"></i>Cumplido</span><span><i class="restante"></i>Restante</span></div>
+            {% else %}
+            <div class="grafica-avance" role="img" aria-label="{{ objetivo.titulo }}: {{ objetivo.porcentaje }} por ciento">
+                <div class="grafica-avance-valor"><strong>{{ objetivo.porcentaje }}%</strong><span>Avance promedio</span></div>
+                <div class="barra-objetivo"><i style="width:{{ objetivo.porcentaje }}%"></i></div>
+                <div class="escala-objetivo"><span>0</span><span>25</span><span>50</span><span>75</span><span>100%</span></div>
+            </div>
+            {% endif %}
+
+            <dl class="objetivo-detalle">
+                <div><dt>Indicador</dt><dd>{{ objetivo.indicador }}</dd></div>
+                <div><dt>Datos medidos</dt><dd>{{ objetivo.datos }}</dd></div>
+                <div><dt>Fórmula</dt><dd>{{ objetivo.formula }}</dd></div>
+            </dl>
+            <p class="objetivo-interpretacion"><strong>Interpretación:</strong> {{ objetivo.interpretacion }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+<section class="tabla-reporte visualizaciones-grupo"><div class="seccion-reporte-titulo"><div><span class="sobrelinea">Vista general</span><h2>Avance comparativo del grupo</h2><p>Cada barra representa el avance acumulado del estudiante en las actividades del curso.</p></div></div><div class="grafica-grupo" role="img" aria-label="Comparación del avance de todos los estudiantes">{% for fila in estudiantes %}<div class="barra-estudiante"><div class="barra-estudiante-etiqueta"><span><strong>{{ fila.usuario.nombres }} {{ fila.usuario.apellidos }}</strong><small>{{ fila.usuario.correo }}</small></span><b>{{ fila.avance }}%</b></div><div class="barra-estudiante-pista"><i style="width:{{ fila.avance }}%"></i></div></div>{% else %}<p class="tabla-vacia">Todavía no hay estudiantes inscritos.</p>{% endfor %}</div></section>
+<section class="tabla-reporte cronograma-general"><div class="seccion-reporte-titulo"><div><span class="sobrelinea">Planificación</span><h2>Cronograma general del curso</h2><p>Fechas, estado y avance promedio de cada actividad. Se actualiza con los registros del grupo.</p></div></div><div class="cronograma-lista">{% for fila in actividades %}<article><div class="cronograma-fecha"><strong>{{ fila.actividad.fecha_entrega.strftime('%d') }}</strong><span>{{ fila.actividad.fecha_entrega.strftime('%m/%Y') }}</span></div><div class="cronograma-contenido"><div><span class="estado-cronograma estado-{{ fila.estado_cronograma|lower|replace(' ', '-') }}">{{ fila.estado_cronograma }}</span><h3>{{ fila.actividad.titulo }}</h3><p>Publicación: {{ fila.actividad.fecha_publicacion.strftime('%d/%m/%Y') }} · Entrega: {{ fila.actividad.fecha_entrega.strftime('%d/%m/%Y') }}{% if fila.estado_cronograma != 'Finalizada' %} · {{ fila.dias_restantes }} días restantes{% endif %}</p></div><strong>{{ fila.avance }}%</strong></div><div class="barra-indicador"><i style="width:{{ fila.avance }}%"></i></div></article>{% else %}<p class="tabla-vacia">No hay actividades para construir el cronograma.</p>{% endfor %}</div></section>
+<section class="tabla-reporte"><div class="seccion-reporte-titulo"><div><h2>Seguimiento por estudiante</h2><p>Resumen acumulado del curso seleccionado.</p></div></div><div class="tabla-scroll"><table><thead><tr><th>Estudiante</th><th>Tiempo</th><th>Sesiones</th><th>Avance</th><th>Evidencias</th><th>IA verificada</th><th>Última actividad</th></tr></thead><tbody>{% for fila in estudiantes %}<tr><td><div class="estudiante-reporte"><span>{{ fila.usuario.nombres[0] }}{{ fila.usuario.apellidos[0] }}</span><div><strong>{{ fila.usuario.nombres }} {{ fila.usuario.apellidos }}</strong><small>{{ fila.usuario.correo }}{% if fila.usuario.carnet %} · {{ fila.usuario.carnet }}{% endif %}</small></div></div></td><td>{{ fila.segundos|duracion_legible }}</td><td>{{ fila.sesiones }}</td><td><div class="avance-tabla"><span>{{ fila.avance }}%</span><i><b style="width:{{ fila.avance }}%"></b></i></div></td><td>{{ fila.evidencias }}</td><td>{{ fila.ia_verificadas }}/{{ fila.ia_total }}</td><td>{% if fila.ultima_actividad %}{{ fila.ultima_actividad.strftime('%d/%m/%Y %H:%M') }}{% else %}<span class="sin-registro">Sin registros</span>{% endif %}</td></tr>{% else %}<tr><td colspan="7" class="tabla-vacia">Todavía no hay estudiantes inscritos en este curso.</td></tr>{% endfor %}</tbody></table></div></section>
+<section class="tabla-reporte"><div class="seccion-reporte-titulo"><div><h2>Indicadores por actividad</h2><p>Permite identificar qué actividades requieren seguimiento.</p></div></div><div class="actividad-indicadores">{% for fila in actividades %}<article><div class="actividad-reporte-cabecera"><div><span>{{ fila.actividad.estado }}</span><h3>{{ fila.actividad.titulo }}</h3><small>Entrega: {{ fila.actividad.fecha_entrega.strftime('%d/%m/%Y') }}</small></div><strong>{{ fila.avance }}%</strong></div><div class="barra-indicador"><i style="width:{{ fila.avance }}%"></i></div><div class="actividad-datos"><span><b>{{ fila.segundos|duracion_legible }}</b> trabajadas</span><span><b>{{ fila.sesiones }}</b> sesiones</span><span><b>{{ fila.evidencias }}</b> evidencias</span><span><b>{{ fila.ia }}</b> usos de IA</span></div></article>{% else %}<div class="estado-vacio compacto"><span>📝</span><h2>No hay actividades</h2><p>Crea una actividad para comenzar a generar indicadores.</p></div>{% endfor %}</div></section>
+{% endif %}
+</div></section>
+{% endblock %}

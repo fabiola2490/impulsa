@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Inicio | Impulsa{% endblock %}
+{% block contenido %}
+<section class="hero" id="inicio">
+    <div class="contenedor hero-grid">
+        <div class="hero-contenido">
+            <span class="etiqueta"><span></span> Plataforma para estudiantes de programación</span>
+            <h1>Convierte tu esfuerzo en <em>progreso visible.</em></h1>
+            <p class="hero-texto">Registra tus sesiones, organiza entregas, demuestra avances y comprende cómo estás utilizando tu tiempo y la inteligencia artificial.</p>
+            <div class="hero-acciones">
+                <a class="boton boton-primario" href="#modulos">Explorar la plataforma</a>
+                <button class="boton boton-secundario" id="boton-demo" type="button">Ver estado en vivo</button>
+            </div>
+            <div class="confianza"><span>✓ Seguimiento no punitivo</span><span>✓ Evidencias verificables</span><span>✓ IA responsable</span></div>
+        </div>
+        <div class="panel-vista" aria-label="Vista previa del panel de Impulsa">
+            <div class="panel-cabecera"><div><small>Panel personal</small><strong>Resumen de progreso</strong></div><span class="panel-fecha">En tiempo real</span></div>
+            <div class="panel-indicadores">
+                <article><span class="mini-icono azul">↗</span><small>Base de datos</small><strong id="dato-base">Conectando…</strong></article>
+                <article><span class="mini-icono violeta">▦</span><small>Tablas activas</small><strong id="dato-tablas">—</strong></article>
+            </div>
+            <div class="panel-progreso">
+                <div class="grafica-anillo"><span>Impulsa</span></div>
+                <div><small>Tu proceso cuenta</small><strong>Planifica · Registra · Mejora</strong><p>Cada sesión aporta evidencia para comprender y mejorar tu forma de trabajar.</p></div>
+            </div>
+            <div class="panel-actividad"><span class="linea-icono">▶</span><div><strong>Sesiones de trabajo</strong><small>Control de tiempo y pausas</small></div><span class="estado-listo">Disponible</span></div>
+            <div class="panel-actividad"><span class="linea-icono">✦</span><div><strong>Asistente de IA</strong><small>Uso registrado y transparente</small></div><span class="estado-listo">Preparado</span></div>
+        </div>
+    </div>
+</section>
+
+<section class="franja-datos" aria-label="Estado actual de la plataforma">
+    <div class="contenedor datos-grid">
+        <div><strong id="total-roles">—</strong><span>Roles configurados</span></div>
+        <div><strong id="total-usuarios">—</strong><span>Usuarios registrados</span></div>
+        <div><strong id="total-cursos">—</strong><span>Cursos activos</span></div>
+        <div><strong id="total-sesiones">—</strong><span>Sesiones registradas</span></div>
+    </div>
+</section>
+
+<section class="seccion modulos-seccion" id="modulos"><div class="contenedor">
+    <div class="titulo-seccion"><span class="sobrelinea">Todo en un mismo lugar</span><h2>Herramientas para avanzar con claridad</h2><p>{% if usuario_actual %}Selecciona un módulo para continuar trabajando según tu rol de {{ usuario_actual.rol.nombre }}.{% else %}Selecciona cada módulo para conocer cómo te ayudará durante tus proyectos de programación.{% endif %}</p></div>
+    <div class="modulos-grid">
+        {% if usuario_actual %}
+        <a class="modulo modulo-acceso modulo-destacado" href="{{ url_for('cursos.lista') }}"><span class="modulo-icono">⌁</span><span class="modulo-numero">01</span><strong>Cursos y actividades</strong><p>{% if usuario_actual.rol.nombre == 'estudiante' %}Consulta tus cursos, actividades e instrucciones.{% else %}Organiza cursos, actividades, fechas y ponderaciones.{% endif %}</p><span class="modulo-enlace">Abrir módulo <b>→</b></span></a>
+        <a class="modulo modulo-acceso" href="{{ url_for('cursos.lista') if usuario_actual.rol.nombre == 'estudiante' else url_for('reportes.panel') }}"><span class="modulo-icono">◷</span><span class="modulo-numero">02</span><strong>Sesiones de trabajo</strong><p>{% if usuario_actual.rol.nombre == 'estudiante' %}Entra a una actividad para iniciar o continuar una sesión.{% else %}Consulta el tiempo y las sesiones registradas por estudiantes.{% endif %}</p><span class="modulo-enlace">{{ 'Ir a mis cursos' if usuario_actual.rol.nombre == 'estudiante' else 'Ver seguimiento' }} <b>→</b></span></a>
+        <a class="modulo modulo-acceso" href="{{ url_for('cursos.lista') if usuario_actual.rol.nombre == 'estudiante' else url_for('reportes.panel') }}"><span class="modulo-icono">↗</span><span class="modulo-numero">03</span><strong>Avances y entregas</strong><p>{% if usuario_actual.rol.nombre == 'estudiante' %}Registra tu progreso desde una actividad asignada.{% else %}Revisa el avance promedio por estudiante y actividad.{% endif %}</p><span class="modulo-enlace">{{ 'Registrar avance' if usuario_actual.rol.nombre == 'estudiante' else 'Ver indicadores' }} <b>→</b></span></a>
+        <a class="modulo modulo-acceso" href="{{ url_for('ia.lista') if usuario_actual.rol.nombre == 'estudiante' else url_for('reportes.panel') }}"><span class="modulo-icono">✦</span><span class="modulo-numero">04</span><strong>Uso responsable de IA</strong><p>{% if usuario_actual.rol.nombre == 'estudiante' %}Consulta tu historial y registra el uso externo de IA.{% else %}Consulta cuántas interacciones fueron verificadas por estudiantes.{% endif %}</p><span class="modulo-enlace">{{ 'Abrir historial' if usuario_actual.rol.nombre == 'estudiante' else 'Ver indicadores de IA' }} <b>→</b></span></a>
+        <a class="modulo modulo-acceso" href="{{ url_for('cursos.lista') if usuario_actual.rol.nombre == 'estudiante' else url_for('reportes.panel') }}"><span class="modulo-icono">▣</span><span class="modulo-numero">05</span><strong>Evidencias</strong><p>{% if usuario_actual.rol.nombre == 'estudiante' %}Entra a una actividad y adjunta evidencias de tus avances.{% else %}Consulta las evidencias acumuladas en cada curso.{% endif %}</p><span class="modulo-enlace">{{ 'Adjuntar evidencias' if usuario_actual.rol.nombre == 'estudiante' else 'Ver evidencias registradas' }} <b>→</b></span></a>
+        <a class="modulo modulo-acceso" href="{{ url_for('auth.panel') if usuario_actual.rol.nombre == 'estudiante' else url_for('reportes.panel') }}"><span class="modulo-icono">▥</span><span class="modulo-numero">06</span><strong>Indicadores y reportes</strong><p>{% if usuario_actual.rol.nombre == 'estudiante' %}Consulta el resumen disponible desde tu panel personal.{% else %}Analiza tiempo, progreso, evidencias y verificación de IA.{% endif %}</p><span class="modulo-enlace">{{ 'Ver mi panel' if usuario_actual.rol.nombre == 'estudiante' else 'Abrir reportes' }} <b>→</b></span></a>
+        {% else %}
+        <button class="modulo modulo-destacado" type="button" aria-expanded="false"><span class="modulo-icono">⌁</span><span class="modulo-numero">01</span><strong>Cursos y actividades</strong><p>Organiza instrucciones, fechas, ponderaciones y criterios de evaluación.</p><span class="modulo-extra">Permite que docentes y estudiantes trabajen con objetivos y fechas claramente definidos.</span><span class="modulo-enlace">Conocer más <b>→</b></span></button>
+        <button class="modulo" type="button" aria-expanded="false"><span class="modulo-icono">◷</span><span class="modulo-numero">02</span><strong>Sesiones de trabajo</strong><p>Registra tiempo efectivo, objetivos, pausas y resultados obtenidos.</p><span class="modulo-extra">Ayuda a identificar hábitos de conexión y concentración durante el desarrollo.</span><span class="modulo-enlace">Conocer más <b>→</b></span></button>
+        <button class="modulo" type="button" aria-expanded="false"><span class="modulo-icono">↗</span><span class="modulo-numero">03</span><strong>Avances y entregas</strong><p>Documenta el progreso y evita acumular todo cerca de la fecha final.</p><span class="modulo-extra">Relaciona avances, versiones de entrega y criterios evaluados por el docente.</span><span class="modulo-enlace">Conocer más <b>→</b></span></button>
+        <button class="modulo" type="button" aria-expanded="false"><span class="modulo-icono">✦</span><span class="modulo-numero">04</span><strong>Uso responsable de IA</strong><p>Registra consultas, respuestas, código modificado y utilidad real.</p><span class="modulo-extra">Promueve transparencia y comprensión sin convertir la IA en una herramienta punitiva.</span><span class="modulo-enlace">Conocer más <b>→</b></span></button>
+        <button class="modulo" type="button" aria-expanded="false"><span class="modulo-icono">▣</span><span class="modulo-numero">05</span><strong>Evidencias</strong><p>Respalda el trabajo con capturas, archivos, enlaces y descripciones.</p><span class="modulo-extra">Cada evidencia queda relacionada con el avance y el estudiante correspondiente.</span><span class="modulo-enlace">Conocer más <b>→</b></span></button>
+        <button class="modulo" type="button" aria-expanded="false"><span class="modulo-icono">▥</span><span class="modulo-numero">06</span><strong>Indicadores y reportes</strong><p>Visualiza productividad, cumplimiento y distribución del esfuerzo.</p><span class="modulo-extra">Presenta información útil para mejorar decisiones académicas y gestión del tiempo.</span><span class="modulo-enlace">Conocer más <b>→</b></span></button>
+        {% endif %}
+    </div>
+</div></section>
+
+<section class="seccion principio-seccion" id="principio"><div class="contenedor principio-grid">
+    <div><span class="sobrelinea claro">El centro de Impulsa</span><h2>No se trata de vigilarte.<br>Se trata de ayudarte a mejorar.</h2><p>La plataforma convierte el proceso de programación en información clara para el estudiante y el docente.</p></div>
+    <ul>
+        <li><span>✓</span><div><strong>Seguimiento formativo</strong><p>Los indicadores orientan mejoras; no sustituyen el criterio académico.</p></div></li>
+        <li><span>✓</span><div><strong>Transparencia con IA</strong><p>Se registra cómo fue utilizada y qué comprendió el estudiante.</p></div></li>
+        <li><span>✓</span><div><strong>Progreso demostrable</strong><p>Las sesiones y evidencias respaldan el avance real del proyecto.</p></div></li>
+    </ul>
+</div></section>
+{% endblock %}

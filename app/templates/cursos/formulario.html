@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}{{ 'Editar' if curso else 'Nuevo' }} curso | Impulsa{% endblock %}
+{% block contenido %}<section class="admin-seccion"><div class="contenedor formulario-contenedor"><a class="volver" href="{{ url_for('cursos.detalle', curso_id=curso.id) if curso else url_for('cursos.lista') }}">← Volver</a><div class="formulario-cabecera"><span class="acceso-icono violeta">📚</span><div><h1>{{ 'Editar curso' if curso else 'Crear curso' }}</h1><p>Define la información académica y asigna al docente responsable.</p></div></div>
+<form class="formulario-usuario" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><div class="campos-grid">
+<label>Código<input name="codigo" maxlength="30" required value="{{ request.form.get('codigo', curso.codigo if curso else '') }}" placeholder="Ej. PROG-101"></label>
+<label>Nombre del curso<input name="nombre" maxlength="150" required value="{{ request.form.get('nombre', curso.nombre if curso else '') }}" placeholder="Programación I"></label>
+<label>Docente<select name="docente_id" required><option value="">Selecciona un docente</option>{% for docente in docentes %}<option value="{{ docente.id }}" {% if request.form.get('docente_id', curso.docente_id if curso else '')|string == docente.id|string %}selected{% endif %}>{{ docente.nombres }} {{ docente.apellidos }}</option>{% endfor %}</select></label>
+<label>Ciclo<input name="ciclo" maxlength="30" value="{{ request.form.get('ciclo', curso.ciclo if curso and curso.ciclo else '') }}" placeholder="Ej. Segundo semestre"></label>
+<label>Año<input name="anio" type="number" min="2020" max="2100" required value="{{ request.form.get('anio', curso.anio if curso else 2026) }}"></label>
+<label class="campo-completo">Descripción<textarea name="descripcion" rows="4" placeholder="Describe brevemente el propósito del curso">{{ request.form.get('descripcion', curso.descripcion if curso and curso.descripcion else '') }}</textarea></label>
+</div><div class="acciones-formulario"><a href="{{ url_for('cursos.lista') }}">Cancelar</a><button class="boton boton-primario" type="submit">{{ 'Guardar cambios' if curso else 'Crear curso' }}</button></div></form>
+</div></section>{% endblock %}

@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+instance/
+backups/
+*.log
+*.sql
+*.dump
+*.backup
+*.csv
+*.zip
+.vscode/
+.idea/

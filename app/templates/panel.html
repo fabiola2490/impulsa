@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Mi panel | Impulsa{% endblock %}
+{% block contenido %}
+<section class="panel-seccion"><div class="contenedor">
+    <div class="panel-cabecera">
+        <div><span class="etiqueta">Panel {{ usuario_actual.rol.nombre }}</span><h1>Hola, {{ usuario_actual.nombres }} 👋</h1><p>{% if usuario_actual.rol.nombre == 'estudiante' %}Este es tu progreso personal. Los datos corresponden únicamente a tu actividad.{% else %}Administra y consulta el seguimiento académico correspondiente a tu rol.{% endif %}</p></div>
+        <div class="perfil-resumen"><span>{{ usuario_actual.nombres[0] }}{{ usuario_actual.apellidos[0] }}</span><div><strong>{{ usuario_actual.nombres }} {{ usuario_actual.apellidos }}</strong><small>{{ usuario_actual.correo }}</small></div></div>
+    </div>
+
+    {% if usuario_actual.rol.nombre == 'estudiante' %}
+    <div class="panel-metricas metricas-estudiante">
+        <article><span>Mis cursos</span><strong>{{ metricas.cursos }}</strong><small>{{ metricas.actividades }} actividades disponibles</small></article>
+        <article><span>Tiempo trabajado</span><strong>{{ metricas.segundos|duracion_legible }}</strong><small>{{ metricas.sesiones }} sesiones registradas</small></article>
+        <article><span>Mi avance</span><strong>{{ metricas.avance }}%</strong><small>promedio de actividades</small></article>
+        <article><span>Mis evidencias</span><strong>{{ metricas.evidencias }}</strong><small>archivos y enlaces</small></article>
+    </div>
+    <div class="panel-resumen-personal">
+        <article><div class="resumen-personal-cabecera"><span class="acceso-icono violeta">✨</span><div><small>Uso responsable de IA</small><strong>{{ metricas.ia_verificadas }}/{{ metricas.ia_total }} verificadas</strong></div></div><div class="barra-personal"><i style="width:{{ (metricas.ia_verificadas * 100 / metricas.ia_total) if metricas.ia_total else 0 }}%"></i></div><a class="boton-mini" href="{{ url_for('ia.lista') }}">Ver mi historial →</a></article>
+        <article class="{{ 'sesion-abierta' if sesion_activa else '' }}"><div class="resumen-personal-cabecera"><span class="acceso-icono cyan">⏱️</span><div><small>Sesión actual</small><strong>{{ sesion_activa.estado|capitalize if sesion_activa else 'Sin sesión activa' }}</strong></div></div>{% if sesion_activa %}<p>{{ sesion_activa.objetivo }}</p><a class="boton-mini" href="{{ url_for('trabajo.actividad', actividad_id=sesion_activa.actividad_id) }}">Continuar sesión →</a>{% else %}<p>Entra a una actividad para comenzar a registrar tu tiempo.</p><a class="boton-mini" href="{{ url_for('cursos.lista') }}">Ir a mis cursos →</a>{% endif %}</article>
+    </div>
+    <div class="panel-seccion-titulo"><div><h2>Actividades pendientes</h2><p>Continúa trabajando antes de la fecha de entrega.</p></div><span>{{ pendientes|length }} visibles</span></div>
+    <div class="pendientes-grid">
+        {% for fila in pendientes %}<article><div><small>{{ fila.curso.codigo if fila.curso else 'Curso' }}</small><h3>{{ fila.actividad.titulo }}</h3><p>Entrega: {{ fila.actividad.fecha_entrega.strftime('%d/%m/%Y %H:%M') }}</p></div><div class="avance-pendiente"><span>{{ fila.avance|round(1) }}%</span><i><b style="width:{{ fila.avance }}%"></b></i></div><a class="boton-mini" href="{{ url_for('trabajo.actividad', actividad_id=fila.actividad.id) }}">Abrir actividad →</a></article>
+        {% else %}<div class="estado-vacio compacto"><span>✅</span><h2>Todo al día</h2><p>No tienes actividades pendientes disponibles.</p></div>{% endfor %}
+    </div>
+    {% else %}
+    <div class="panel-metricas">
+        {% if usuario_actual.rol.nombre == 'administrador' %}<article><span>Usuarios</span><strong>{{ metricas.usuarios }}</strong><small>registrados</small></article>{% else %}<article><span>Estudiantes</span><strong>{{ metricas.estudiantes }}</strong><small>inscritos en tus cursos</small></article>{% endif %}
+        <article><span>Cursos</span><strong>{{ metricas.cursos }}</strong><small>{{ 'registrados' if usuario_actual.rol.nombre == 'administrador' else 'asignados' }}</small></article>
+        <article><span>Sesiones</span><strong>{{ metricas.sesiones }}</strong><small>de trabajo</small></article>
+        <article><span>Evidencias</span><strong>{{ metricas.evidencias }}</strong><small>archivos y enlaces</small></article>
+    </div>
+    <h2 class="titulo-panel">Accesos rápidos</h2><div class="accesos-grid">
+        {% if usuario_actual.rol.nombre == 'administrador' %}<article><span class="acceso-icono azul">👥</span><h3>Gestionar usuarios</h3><p>Registra, edita, busca y controla las cuentas.</p><a class="boton-mini" href="{{ url_for('admin.usuarios') }}">Abrir módulo →</a></article>{% endif %}
+        <article><span class="acceso-icono violeta">📚</span><h3>Cursos y actividades</h3><p>Organiza cursos, actividades y fechas de entrega.</p><a class="boton-mini" href="{{ url_for('cursos.lista') }}">Abrir módulo →</a></article>
+        <article><span class="acceso-icono cyan">📊</span><h3>Reportes</h3><p>Consulta indicadores de avance, tiempo, evidencias y uso de IA.</p><a class="boton-mini" href="{{ url_for('reportes.panel') }}">Abrir reportes →</a></article>
+    </div>
+    {% endif %}
+</div></section>
+{% endblock %}

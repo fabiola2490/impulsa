@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Iniciar sesión | Impulsa{% endblock %}
+{% block contenido %}
+<section class="acceso-seccion">
+    <div class="acceso-layout contenedor">
+        <div class="acceso-presentacion">
+            <span class="etiqueta">Acceso seguro</span>
+            <h1>Tu progreso empieza aquí.</h1>
+            <p>Ingresa para organizar actividades, registrar sesiones y convertir tu esfuerzo en resultados visibles.</p>
+            <div class="beneficio"><span>✓</span><div><strong>Información centralizada</strong><small>Avances, evidencias y entregas en un mismo lugar.</small></div></div>
+            <div class="beneficio"><span>✓</span><div><strong>Acceso según tu rol</strong><small>Panel personalizado para administración, docentes y estudiantes.</small></div></div>
+        </div>
+        <form class="tarjeta-acceso" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="icono-acceso">I</div>
+            <h2>Bienvenida a Impulsa</h2>
+            <p>Utiliza la cuenta de administrador que creaste.</p>
+            <label for="correo">Correo electrónico</label>
+            <input id="correo" name="correo" type="email" autocomplete="email" placeholder="nombre@correo.com" required autofocus>
+            <label for="password">Contraseña</label>
+            <div class="campo-password">
+                <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Tu contraseña" required>
+                <button id="mostrar-password" type="button" aria-label="Mostrar contraseña">Ver</button>
+            </div>
+            <button class="boton boton-primario ancho" type="submit">Entrar a mi panel <span>→</span></button>
+            <small class="nota-acceso">La contraseña se valida de forma cifrada.</small>
+        </form>
+    </div>
+</section>
+{% endblock %}
