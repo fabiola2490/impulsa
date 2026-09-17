@@ -14,7 +14,7 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div class="icono-acceso">I</div>
             <h2>Bienvenida a Impulsa</h2>
-            <p>Utiliza la cuenta de administrador que creaste.</p>
+            <p>Ingresa con tu correo institucional y la primera contraseña que registraste.</p>
             <label for="correo">Correo electrónico</label>
             <input id="correo" name="correo" type="email" autocomplete="email" placeholder="nombre@correo.com" required autofocus>
             <label for="password">Contraseña</label>
@@ -23,6 +23,7 @@
                 <button id="mostrar-password" type="button" aria-label="Mostrar contraseña">Ver</button>
             </div>
             <button class="boton boton-primario ancho" type="submit">Entrar a mi panel <span>→</span></button>
+            <a class="boton-mini ancho" href="{{ url_for('auth.registro') }}">Crear cuenta de estudiante UMG</a>
             <small class="nota-acceso">La contraseña se valida de forma cifrada.</small>
         </form>
     </div>

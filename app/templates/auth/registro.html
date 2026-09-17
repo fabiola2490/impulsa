@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Registro UMG | Impulsa{% endblock %}
+{% block contenido %}
+<section class="acceso-seccion">
+    <div class="acceso-layout contenedor">
+        <div class="acceso-presentacion">
+            <span class="etiqueta">Registro estudiantil</span>
+            <h1>Acceso para Universidad Mariano Gálvez.</h1>
+            <p>Crea tu cuenta con correo institucional autorizado. La contraseña que registres será tu contraseña permanente de ingreso.</p>
+            <div class="beneficio"><span>✓</span><div><strong>Dominios autorizados</strong><small>{{ dominios|join(", ") }}</small></div></div>
+            <div class="beneficio"><span>✓</span><div><strong>Seguimiento académico</strong><small>Completa al menos 4 sesiones de trabajo durante tu actividad.</small></div></div>
+        </div>
+        <form class="tarjeta-acceso" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="icono-acceso">U</div>
+            <h2>Crear cuenta</h2>
+            <p>Usa tus datos reales para que tus avances queden asociados correctamente.</p>
+            <label>Nombres<input name="nombres" maxlength="100" required value="{{ request.form.get('nombres', '') }}"></label>
+            <label>Apellidos<input name="apellidos" maxlength="100" required value="{{ request.form.get('apellidos', '') }}"></label>
+            <label>Correo institucional<input name="correo" type="email" autocomplete="email" maxlength="150" required placeholder="tu.usuario@miumg.edu.gt" value="{{ request.form.get('correo', '') }}"></label>
+            <label>Carnet <small>(opcional)</small><input name="carnet" maxlength="30" value="{{ request.form.get('carnet', '') }}"></label>
+            <label>Contraseña<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+            <label>Confirmar contraseña<input name="confirmar_password" type="password" autocomplete="new-password" minlength="8" required></label>
+            <button class="boton boton-primario ancho" type="submit">Crear mi cuenta <span>→</span></button>
+            <a class="boton-mini ancho" href="{{ url_for('auth.login') }}">Ya tengo cuenta</a>
+            <small class="nota-acceso">Impulsa guarda la contraseña cifrada; no se almacena en texto plano.</small>
+        </form>
+    </div>
+</section>
+{% endblock %}
