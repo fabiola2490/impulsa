@@ -64,6 +64,28 @@ def correo_umg_autorizado(correo):
     return dominio in current_app.config["UMG_ALLOWED_EMAIL_DOMAINS"]
 
 
+def inscribir_estudiante_en_cursos_activos(usuario):
+    """Garantiza acceso del estudiante a todos los cursos activos."""
+    cursos = Curso.query.filter_by(activo=True).all()
+    existentes = {
+        inscripcion.curso_id: inscripcion
+        for inscripcion in Inscripcion.query.filter_by(estudiante_id=usuario.id).all()
+    }
+    for curso in cursos:
+        inscripcion = existentes.get(curso.id)
+        if inscripcion is None:
+            db.session.add(
+                Inscripcion(
+                    curso_id=curso.id,
+                    estudiante_id=usuario.id,
+                    estado="activo",
+                )
+            )
+        elif inscripcion.estado != "activo":
+            inscripcion.estado = "activo"
+    return len(cursos)
+
+
 def validar_registro_estudiante(datos):
     errores = []
     if not datos["nombres"] or len(datos["nombres"]) > 100:
@@ -101,6 +123,8 @@ def login():
             session["usuario_id"] = usuario.id
             session["csrf_token"] = __import__("secrets").token_urlsafe(32)
             usuario.ultimo_acceso = datetime.now(timezone.utc)
+            if usuario.rol.nombre == "estudiante":
+                inscribir_estudiante_en_cursos_activos(usuario)
             db.session.commit()
             flash(f"¡Bienvenida, {usuario.nombres}!", "success")
             siguiente = request.args.get("next")
@@ -127,11 +151,8 @@ def registro():
         rol = Role.query.filter_by(nombre="estudiante").first()
         if rol is None:
             errores.append("El rol estudiante no existe todavía en la base de datos.")
-        curso = Curso.query.filter_by(
-            codigo=current_app.config["REGISTRATION_COURSE_CODE"], activo=True
-        ).first()
-        if curso is None:
-            errores.append("El curso de registro no está disponible. Comunícate con la administración.")
+        if Curso.query.filter_by(activo=True).count() == 0:
+            errores.append("No hay cursos activos disponibles. Comunícate con la administración.")
 
         if not errores:
             usuario = Usuario(
@@ -145,13 +166,7 @@ def registro():
             usuario.establecer_contrasena(datos["password"])
             db.session.add(usuario)
             db.session.flush()
-            db.session.add(
-                Inscripcion(
-                    curso_id=curso.id,
-                    estudiante_id=usuario.id,
-                    estado="activo",
-                )
-            )
+            inscribir_estudiante_en_cursos_activos(usuario)
             db.session.commit()
             session.clear()
             session["usuario_id"] = usuario.id

@@ -6,7 +6,11 @@ from sqlalchemy import or_
 
 from app.extensions import db
 from app.models import Actividad, Curso, Inscripcion, Role, Usuario
-from app.routes.auth import admin_requerido, login_requerido
+from app.routes.auth import (
+    admin_requerido,
+    inscribir_estudiante_en_cursos_activos,
+    login_requerido,
+)
 
 
 cursos_bp = Blueprint("cursos", __name__, url_prefix="/cursos")
@@ -43,6 +47,9 @@ def obtener_docentes():
 @login_requerido
 def lista():
     rol = g.usuario.rol.nombre
+    if rol == "estudiante":
+        inscribir_estudiante_en_cursos_activos(g.usuario)
+        db.session.commit()
     consulta = Curso.query.order_by(Curso.anio.desc(), Curso.nombre)
     if rol == "docente":
         consulta = consulta.filter_by(docente_id=g.usuario.id)
