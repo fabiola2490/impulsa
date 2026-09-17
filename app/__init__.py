@@ -81,8 +81,7 @@ def create_app():
 
     @app.errorhandler(413)
     def archivo_demasiado_grande(_error):
-        limite_mb = app.config["MAX_CONTENT_LENGTH"] // (1024 * 1024)
-        return f"El archivo supera el límite permitido de {limite_mb} MB.", 413
+        return "El archivo supera el límite permitido de 10 MB.", 413
 
     @app.cli.command("verificar-db")
     def verificar_db():
