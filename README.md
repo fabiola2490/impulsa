@@ -1,42 +1,84 @@
 # Impulsa
 
-Plataforma académica en Python y Flask para cursos, actividades, sesiones de
-trabajo, avances, evidencias y registro del uso de inteligencia artificial.
+Plataforma web de tesis para registrar actividad de programacion, sesiones de
+trabajo, avances, evidencias, entregas y uso responsable de IA.
 
-## Estado
+## Que incluye esta version
 
-Código preparado para revisión y publicación. **No desplegar todavía para uso
-real:** el almacenamiento de evidencias sigue siendo local. En Render gratuito
-esos archivos no son persistentes. Falta integrar almacenamiento privado externo,
-migrar la base de datos existente y comprobar la aplicación desplegada.
+- Flask + PostgreSQL mediante `DATABASE_URL`.
+- Login con contrasenas cifradas.
+- Registro abierto para estudiantes con correo institucional UMG autorizado.
+- Primera contrasena persistente: el estudiante la crea una vez y la vuelve a usar.
+- Roles de administrador, docente y estudiante.
+- Cursos, actividades, inscripciones, sesiones, pausas, avances y evidencias.
+- Asistente integrado con Groq y registro/verificacion de interacciones de IA.
+- Regla academica: cada estudiante debe completar al menos 4 sesiones de trabajo
+  para declarar una actividad al 100%.
+- Archivos listos para Render: `render.yaml` y `Procfile`.
 
-Este repositorio no incluye cuentas, contraseñas, base de datos, evidencias ni
-scripts privados de restauración. No proporciona usuarios predeterminados.
+## Variables de entorno
 
-## Desarrollo
+En local se puede copiar `.env.example` a `.env`. En Render se configuran desde
+el panel del servicio.
 
-Requiere Python 3.12 y PostgreSQL con el esquema de Impulsa.
+```env
+SECRET_KEY=crea_una_clave_larga_y_privada
+DATABASE_URL=postgresql://...
+GROQ_API_KEY=tu_clave_privada_de_groq
+GROQ_MODEL=openai/gpt-oss-120b
+UMG_ALLOWED_EMAIL_DOMAINS=miumg.edu.gt,umg.edu.gt,mariano.edu.gt
+MIN_SESIONES_TRABAJO=4
+REGISTRATION_COURSE_CODE=2490-049-A
+MAX_UPLOAD_MB=10
+```
 
-1. Crear un entorno virtual e instalar `requirements.txt`.
-2. Copiar `.env.example` a `.env` y configurar valores privados.
-3. Ejecutar `python -m flask --app run verificar-db` para comprobar la conexión.
-4. Iniciar con `python -m waitress --listen=127.0.0.1:5050 run:app`.
+No subas `.env` ni claves API al repositorio.
 
-Nunca recrear ni sobrescribir la base existente para probar el código.
+## Instalacion local
 
-## Pruebas sin datos reales
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+Copy-Item .env.example .env
+python -m flask --app run.py run --debug --port 5050
+```
 
-`python -m unittest test_groq_patch test_publicacion`
+Abrir:
 
-Estas pruebas no certifican la migración ni el rendimiento en la nube.
+- `http://127.0.0.1:5050`
+- `http://127.0.0.1:5050/login`
+- `http://127.0.0.1:5050/registro`
 
-## Preparación de Render (pendiente)
+## Verificaciones
 
-- Servicio Python; comando de instalación: `pip install -r requirements.txt`.
-- Inicio: `waitress-serve --listen=0.0.0.0:$PORT --threads=8 run:app`.
-- Guardar SECRET_KEY y DATABASE_URL solo en las variables privadas del servidor.
-- Usar PostgreSQL con SSL y almacenamiento privado persistente de evidencias.
-- Cambiar las contraseñas de demostración antes de permitir acceso externo.
-- Probar permisos, carga/descarga y persistencia después de un reinicio.
+```powershell
+flask --app run.py verificar-modelos
+flask --app run.py verificar-db
+python test_groq_patch.py
+```
 
-No publicar archivos `.env`, copias de seguridad ni listados de estudiantes.
+## Crear el primer administrador
+
+```powershell
+flask --app run.py crear-admin
+```
+
+El comando solicita nombres, apellidos, correo y contrasena. La contrasena se
+almacena unicamente como hash seguro.
+
+## Despliegue en Render
+
+1. Subir el proyecto completo a un repositorio.
+2. Crear el servicio desde Render usando `render.yaml`, o configurar:
+   - Build command: `pip install -r requirements.txt`
+   - Start command: `waitress-serve --listen=0.0.0.0:$PORT run:app`
+3. Crear PostgreSQL en Render y asignar `DATABASE_URL`.
+4. Configurar `SECRET_KEY`, `GROQ_API_KEY`, `GROQ_MODEL`,
+   `UMG_ALLOWED_EMAIL_DOMAINS`, `MIN_SESIONES_TRABAJO` y
+   `REGISTRATION_COURSE_CODE`.
+5. Crear o migrar las tablas existentes antes de usar la aplicacion.
+
+La base de datos debe contener las tablas actuales de Impulsa. No publiques
+capturas con contrasenas ni claves privadas.

@@ -18,7 +18,7 @@ class Tests(unittest.TestCase):
         self.app = Flask(__name__)
         self.app.secret_key = 'offline-test'
         self.app.config.update(GROQ_API_KEY='fake', GROQ_MODEL='openai/gpt-oss-120b')
-        tree = ast.parse((ROOT/'app/routes/ia.py').read_text())
+        tree = ast.parse((ROOT/'app/routes/ia.py').read_text(encoding='utf-8'))
         function = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'asistente')
         function.decorator_list = []
         self.model = MagicMock()
@@ -94,7 +94,7 @@ class Tests(unittest.TestCase):
         self.assertNotIn('Respuesta de Gemini',text)
 
     def test_optional_manual_fields(self):
-        tree=ast.parse((ROOT/'app/routes/ia.py').read_text())
+        tree=ast.parse((ROOT/'app/routes/ia.py').read_text(encoding='utf-8'))
         fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='validar_formulario')
         self.env.update(ESTADOS={'pendiente':'Pendiente'},SesionTrabajo=MagicMock())
         self.env['SesionTrabajo'].query.filter_by.return_value.order_by.return_value.first.return_value=None

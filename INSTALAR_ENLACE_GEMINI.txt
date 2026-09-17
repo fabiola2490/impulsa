@@ -1,0 +1,21 @@
+ACTUALIZACION: ENLACE EXTERNO DE GEMINI
+
+1. Deten solo el servidor de Impulsa con Ctrl+C. Deja ngrok abierto.
+2. Guarda una copia de tus tres archivos actuales:
+   app/templates/trabajo/actividad.html
+   app/templates/ia/lista.html
+   app/templates/ia/asistente.html
+3. Copia la carpeta app de este ZIP dentro de nuevo-plataforma.
+   Combina las carpetas y reemplaza solamente esos tres archivos.
+   No borres ni reemplaces toda la carpeta app.
+4. En la terminal del proyecto, con (venv) activo, ejecuta:
+   python -m waitress --listen=0.0.0.0:5050 run:app
+5. Recarga la actividad. Pulsa Abrir Gemini, realiza una consulta y vuelve
+   a Registrar uso de Gemini. Guarda el registro y comprueba el reporte.
+
+Cada estudiante usa su propia cuenta de Google. Una cuenta institucional
+puede requerir habilitacion del administrador. No activar facturacion.
+El enlace no usa la clave API del proyecto ni registra chats automaticamente.
+La API integrada sigue pendiente de resolver su restriccion con Google.
+Esta actualizacion no modifica usuarios, base de datos, evidencias ni claves.
+Si tu copia tiene cambios propios en estas plantillas, conserva el respaldo.

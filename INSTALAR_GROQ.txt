@@ -1,0 +1,33 @@
+IMPULSA - ASISTENTE INTEGRADO CON GROQ
+
+Este parche no activa facturacion. Mantener la cuenta Groq en Free.
+No incluye claves, base de datos ni evidencias. No instala un proyecto nuevo.
+
+1. Deten solo Waitress con Ctrl+C; deja ngrok abierto.
+2. Respalda config.py, app/routes/ia.py y las plantillas que contiene el ZIP.
+3. Copia config.py y la carpeta app del ZIP dentro de nuevo-plataforma.
+   Combina las carpetas: reemplaza SOLO los archivos del parche.
+   Nunca borres toda la carpeta app ni tu archivo .env.
+4. Conserva en .env GROQ_API_KEY y GROQ_MODEL que ya guardaste.
+5. En VS Code, terminal del proyecto con (venv) activo:
+   python -m pip install "openai>=1.0,<3.0"
+   python -m waitress --listen=0.0.0.0:5050 run:app
+6. Entra en http://127.0.0.1:5050 y abre una actividad como estudiante.
+   Pulsa Asistente integrado. Pregunta que es una variable.
+7. Comprueba que la respuesta queda registrada como Groq y el modelo real.
+   Guarda la verificacion y comprueba el historial y reporte docente.
+8. Prueba desde el celular con el enlace ngrok mientras el servidor siga activo.
+
+Las consultas y el contexto de actividad se envian a Groq. No enviar secretos
+ni datos personales. Informa a los participantes de este uso de un tercero.
+Se conserva el historial antiguo sin cambiar su proveedor ni modelo.
+El modelo manual es opcional y ya no sugiere GPT-5 para cualquier herramienta.
+La clave no se muestra al estudiante. No hay cambio automatico a otra API.
+Las cuotas del proveedor aplican a todo el grupo. No se garantiza uso ilimitado.
+Control local: una consulta simultanea y 15 segundos entre intentos por usuario.
+Este control es en memoria, para UN proceso Waitress; se reinicia al reiniciar
+el servidor. No es un control distribuido ni una garantia de cuota diaria.
+El tiempo automatico mide la espera de respuesta, no el tiempo de aprendizaje.
+
+Si falla, manda solo el aviso de pantalla. No compartas .env ni claves API.
+Reversion: detener Waitress y restaurar los archivos respaldados.
