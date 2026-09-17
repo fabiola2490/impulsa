@@ -6,7 +6,7 @@
 <div class="principio-ia"><span>🧭</span><div><strong>La IA te orienta; tú decides y verificas.</strong><p>Tu consulta se enviará a Groq. Si responde, la consulta y respuesta se guardan en Impulsa; después registra tu verificación. No envíes contraseñas ni datos personales.</p></div></div>
 <form class="consulta-ia" method="post">
 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-<p class="ayuda-campo">{{ 'Asistente Groq disponible.' if api_configurada else 'Falta configurar la clave de Groq en el servidor.' }}</p>
+<p class="ayuda-campo">{{ 'Clave configurada; conexión pendiente de comprobar con una consulta.' if api_configurada else 'Falta configurar la clave de Groq en el servidor.' }}</p>
 <label>Tipo de ayuda<select name="tipo_ayuda" required>{% for valor, nombre in tipos.items() %}<option value="{{ valor }}" {% if request.form.get('tipo_ayuda', 'explicacion') == valor %}selected{% endif %}>{{ nombre }}</option>{% endfor %}</select></label>
 <label>¿En qué necesitas orientación?<textarea name="consulta" rows="5" maxlength="6000" required placeholder="Describe tu duda y lo que has intentado">{{ request.form.get('consulta', '') }}</textarea></label>
 <label>Código relacionado (opcional)<textarea name="codigo_enviado" rows="5" maxlength="12000">{{ request.form.get('codigo_enviado', '') }}</textarea></label>
