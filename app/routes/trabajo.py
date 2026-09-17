@@ -18,23 +18,10 @@ from app.routes.auth import estudiante_requerido
 
 trabajo_bp = Blueprint("trabajo", __name__, url_prefix="/trabajo")
 EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "pdf", "doc", "docx", "zip", "txt"}
-TAMANO_BLOQUE = 1024 * 1024
 
 
 def ahora():
     return datetime.now(timezone.utc)
-
-
-def guardar_archivo_por_bloques(archivo, ruta):
-    """Guarda sin cargar el archivo completo en memoria y calcula su SHA-256."""
-    huella = hashlib.sha256()
-    tamano = 0
-    with open(ruta, "wb") as destino:
-        while bloque := archivo.stream.read(TAMANO_BLOQUE):
-            destino.write(bloque)
-            huella.update(bloque)
-            tamano += len(bloque)
-    return tamano, huella.hexdigest()
 
 
 def actividad_autorizada(actividad_id):
@@ -67,6 +54,14 @@ def cerrar_pausa_abierta(sesion, momento):
     return pausa
 
 
+def sesiones_finalizadas_actividad(actividad_id):
+    return SesionTrabajo.query.filter_by(
+        estudiante_id=g.usuario.id,
+        actividad_id=actividad_id,
+        estado="finalizada",
+    ).count()
+
+
 @trabajo_bp.get("/actividades/<int:actividad_id>")
 @estudiante_requerido
 def actividad(actividad_id):
@@ -84,6 +79,7 @@ def actividad(actividad_id):
     sesiones = SesionTrabajo.query.filter_by(
         estudiante_id=g.usuario.id, actividad_id=actividad.id
     ).order_by(SesionTrabajo.inicio.desc()).limit(10).all()
+    sesiones_finalizadas = sesiones_finalizadas_actividad(actividad.id)
     avances = Avance.query.filter_by(
         estudiante_id=g.usuario.id, actividad_id=actividad.id
     ).order_by(Avance.registrado_en.desc()).limit(10).all()
@@ -91,6 +87,8 @@ def actividad(actividad_id):
         "trabajo/actividad.html", actividad=actividad, curso=curso,
         sesion_activa=sesion_activa, pausa_abierta=pausa_abierta,
         sesiones=sesiones, avances=avances,
+        sesiones_finalizadas=sesiones_finalizadas,
+        sesiones_minimas=current_app.config["MIN_SESIONES_TRABAJO"],
     )
 
 
@@ -205,6 +203,15 @@ def registrar_avance(sesion_id):
             errores.append("El porcentaje debe estar entre 0 y 100.")
         if not descripcion:
             errores.append("Describe el avance que conseguiste.")
+        sesiones_finalizadas = sesiones_finalizadas_actividad(actividad.id)
+        if (
+            porcentaje == Decimal("100")
+            and sesiones_finalizadas < current_app.config["MIN_SESIONES_TRABAJO"]
+        ):
+            errores.append(
+                "Para declarar la actividad al 100%, completa al menos "
+                f"{current_app.config['MIN_SESIONES_TRABAJO']} sesiones de trabajo."
+            )
         if not errores:
             avance = Avance(
                 actividad_id=actividad.id, estudiante_id=g.usuario.id,
@@ -269,20 +276,21 @@ def evidencias(avance_id):
                 if extension not in EXTENSIONES_PERMITIDAS:
                     errores.append("Formato no permitido. Usa PNG, JPG, PDF, Word, ZIP o TXT.")
                 else:
-                    nombre_guardado = f"{uuid.uuid4().hex}.{extension}"
-                    ruta = os.path.join(current_app.config["UPLOAD_FOLDER"], nombre_guardado)
-                    tamano, hash_archivo = guardar_archivo_por_bloques(archivo, ruta)
-                    if not tamano:
-                        os.remove(ruta)
+                    contenido = archivo.read()
+                    if not contenido:
                         errores.append("El archivo está vacío.")
                     else:
+                        nombre_guardado = f"{uuid.uuid4().hex}.{extension}"
+                        ruta = os.path.join(current_app.config["UPLOAD_FOLDER"], nombre_guardado)
+                        with open(ruta, "wb") as destino:
+                            destino.write(contenido)
                         evidencia = Evidencia(
                             avance_id=avance.id, estudiante_id=g.usuario.id,
                             nombre_archivo=nombre_original[:255],
                             tipo_archivo=archivo.mimetype or "application/octet-stream",
                             ubicacion_archivo=nombre_guardado,
-                            tamano_bytes=tamano,
-                            hash_archivo=hash_archivo,
+                            tamano_bytes=len(contenido),
+                            hash_archivo=hashlib.sha256(contenido).hexdigest(),
                             descripcion=descripcion,
                         )
         else:

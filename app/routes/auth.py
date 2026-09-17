@@ -2,11 +2,11 @@ from datetime import datetime, timezone
 from functools import wraps
 from urllib.parse import urljoin, urlparse
 
-from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, flash, g, redirect, render_template, request, session, url_for
 
 from app.extensions import db
 from app.models import (
-    Actividad, Avance, Curso, Evidencia, Inscripcion,
+    Actividad, Avance, Curso, Evidencia, Inscripcion, Role,
     InteraccionIA, SesionTrabajo, Usuario,
 )
 
@@ -57,6 +57,31 @@ def destino_seguro(destino):
     return objetivo.scheme in {"http", "https"} and base.netloc == objetivo.netloc
 
 
+def correo_umg_autorizado(correo):
+    if "@" not in correo:
+        return False
+    dominio = correo.rsplit("@", 1)[1].lower()
+    return dominio in current_app.config["UMG_ALLOWED_EMAIL_DOMAINS"]
+
+
+def validar_registro_estudiante(datos):
+    errores = []
+    if not datos["nombres"] or len(datos["nombres"]) > 100:
+        errores.append("Escribe tus nombres.")
+    if not datos["apellidos"] or len(datos["apellidos"]) > 100:
+        errores.append("Escribe tus apellidos.")
+    if not correo_umg_autorizado(datos["correo"]):
+        dominios = ", ".join(sorted(current_app.config["UMG_ALLOWED_EMAIL_DOMAINS"]))
+        errores.append(f"Usa un correo institucional autorizado de Universidad Mariano Gálvez ({dominios}).")
+    if Usuario.query.filter_by(correo=datos["correo"]).first():
+        errores.append("Ya existe una cuenta con ese correo. Inicia sesión con tu primera contraseña.")
+    if len(datos["password"]) < 8:
+        errores.append("La contraseña debe tener al menos 8 caracteres.")
+    if datos["password"] != datos["confirmar_password"]:
+        errores.append("Las contraseñas no coinciden.")
+    return errores
+
+
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if g.usuario is not None:
@@ -84,6 +109,68 @@ def login():
     return render_template("auth/login.html")
 
 
+@auth_bp.route("/registro", methods=["GET", "POST"])
+def registro():
+    if g.usuario is not None:
+        return redirect(url_for("auth.panel"))
+
+    if request.method == "POST":
+        datos = {
+            "nombres": request.form.get("nombres", "").strip(),
+            "apellidos": request.form.get("apellidos", "").strip(),
+            "correo": request.form.get("correo", "").strip().lower(),
+            "carnet": request.form.get("carnet", "").strip() or None,
+            "password": request.form.get("password", ""),
+            "confirmar_password": request.form.get("confirmar_password", ""),
+        }
+        errores = validar_registro_estudiante(datos)
+        rol = Role.query.filter_by(nombre="estudiante").first()
+        if rol is None:
+            errores.append("El rol estudiante no existe todavía en la base de datos.")
+        curso = Curso.query.filter_by(
+            codigo=current_app.config["REGISTRATION_COURSE_CODE"], activo=True
+        ).first()
+        if curso is None:
+            errores.append("El curso de registro no está disponible. Comunícate con la administración.")
+
+        if not errores:
+            usuario = Usuario(
+                rol_id=rol.id,
+                nombres=datos["nombres"],
+                apellidos=datos["apellidos"],
+                correo=datos["correo"],
+                carnet=datos["carnet"],
+                activo=True,
+            )
+            usuario.establecer_contrasena(datos["password"])
+            db.session.add(usuario)
+            db.session.flush()
+            db.session.add(
+                Inscripcion(
+                    curso_id=curso.id,
+                    estudiante_id=usuario.id,
+                    estado="activo",
+                )
+            )
+            db.session.commit()
+            session.clear()
+            session["usuario_id"] = usuario.id
+            session["csrf_token"] = __import__("secrets").token_urlsafe(32)
+            flash(
+                "Cuenta creada e inscripción completada. Conserva esta contraseña para futuros ingresos.",
+                "success",
+            )
+            return redirect(url_for("auth.panel"))
+
+        for error in errores:
+            flash(error, "error")
+
+    return render_template(
+        "auth/registro.html",
+        dominios=sorted(current_app.config["UMG_ALLOWED_EMAIL_DOMAINS"]),
+    )
+
+
 @auth_bp.get("/panel")
 @login_requerido
 def panel():
@@ -108,6 +195,7 @@ def panel():
         )
         actividades_ids = [item.id for item in actividades]
         sesiones = SesionTrabajo.query.filter_by(estudiante_id=g.usuario.id).all()
+        sesiones_finalizadas = [item for item in sesiones if item.estado == "finalizada"]
         avances = Avance.query.filter_by(estudiante_id=g.usuario.id).order_by(
             Avance.registrado_en.asc()
         ).all()
@@ -141,6 +229,8 @@ def panel():
             "cursos": len(cursos),
             "actividades": len(actividades),
             "sesiones": len(sesiones),
+            "sesiones_finalizadas": len(sesiones_finalizadas),
+            "sesiones_minimas": current_app.config["MIN_SESIONES_TRABAJO"],
             "segundos": sum(item.duracion_segundos or 0 for item in sesiones),
             "avance": round(avance_general, 1),
             "evidencias": len(evidencias),

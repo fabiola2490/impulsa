@@ -30,11 +30,10 @@ def salud():
             "base_datos": nombre.scalar_one(),
             "tablas": total_tablas.scalar_one(),
         }, 200
-    except Exception:
-        db.session.rollback()
+    except Exception as error:
         return {
             "estado": "error",
-            "detalle": "No se pudo verificar la base de datos.",
+            "detalle": str(error),
         }, 500
 
 
