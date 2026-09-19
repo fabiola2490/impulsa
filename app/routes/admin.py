@@ -1,7 +1,8 @@
 import csv
 import io
+import secrets
 
-from flask import Blueprint, flash, g, redirect, render_template, request, send_file, url_for
+from flask import Blueprint, current_app, flash, g, redirect, render_template, request, send_file, url_for
 from sqlalchemy import or_
 
 from app.extensions import db
@@ -10,6 +11,30 @@ from app.routes.auth import admin_requerido
 
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
+
+
+@admin_bp.route("/datos-prueba-analisis", methods=["GET", "POST"])
+@admin_requerido
+def datos_prueba_analisis():
+    if request.method == "POST":
+        if request.form.get("confirmacion", "").strip().upper() != "GENERAR":
+            flash("Escribe GENERAR para confirmar la creación de datos sintéticos.", "error")
+            return render_template("admin/datos_prueba_analisis.html")
+
+        comando = current_app.cli.commands.get("generar-datos-analisis")
+        if comando is None:
+            flash("El generador de datos no está disponible.", "error")
+            return render_template("admin/datos_prueba_analisis.html")
+
+        password_aleatoria = secrets.token_urlsafe(24)
+        comando.callback(confirmar=True, password=password_aleatoria)
+        flash(
+            "Se generaron 20 estudiantes sintéticos, 80 sesiones y 40 interacciones de IA.",
+            "success",
+        )
+        return redirect(url_for("reportes.panel"))
+
+    return render_template("admin/datos_prueba_analisis.html")
 
 
 def datos_formulario():

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Datos de prueba | Impulsa{% endblock %}
+{% block contenido %}
+<section class="admin-seccion"><div class="contenedor formulario-contenedor">
+    <a class="volver" href="{{ url_for('auth.panel') }}">← Volver al panel</a>
+    <div class="formulario-cabecera"><span class="acceso-icono violeta">🧪</span><div><h1>Datos sintéticos para el análisis</h1><p>Genera un conjunto controlado para comprobar sesiones, avances, evidencias e interacciones de IA.</p></div></div>
+    <form class="formulario-usuario" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <p><strong>La operación creará o reemplazará exclusivamente:</strong></p>
+        <ul>
+            <li>20 cuentas con el prefijo <code>prueba.analisis</code>.</li>
+            <li>80 sesiones finalizadas, cuatro por estudiante.</li>
+            <li>40 interacciones de IA, distribuidas entre los 20 estudiantes.</li>
+            <li>80 avances y 20 evidencias identificadas como sintéticas.</li>
+        </ul>
+        <p>Las cuentas reales, sus sesiones y sus interacciones no serán modificadas.</p>
+        <label>Confirmación<input name="confirmacion" required autocomplete="off" placeholder="Escribe GENERAR"></label>
+        <div class="acciones-formulario"><a href="{{ url_for('auth.panel') }}">Cancelar</a><button class="boton boton-primario" type="submit">Generar datos de prueba</button></div>
+    </form>
+</div></section>
+{% endblock %}
