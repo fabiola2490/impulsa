@@ -186,6 +186,25 @@ def panel():
         "ia_porcentaje": round(verificadas_ia * 100 / total_ia, 1) if total_ia else 0,
     }
 
+    estudiantes_cuatro_sesiones = sum(
+        1 for fila in filas_estudiantes if fila["sesiones"] >= 4
+    )
+    estudiantes_con_ia = sum(1 for fila in filas_estudiantes if fila["ia_total"] > 0)
+    umbral = {
+        "estudiantes_objetivo": 20,
+        "sesiones_objetivo": 80,
+        "interacciones_objetivo": 40,
+        "usuarios_ia_objetivo": 15,
+        "estudiantes_cuatro_sesiones": estudiantes_cuatro_sesiones,
+        "usuarios_con_ia": estudiantes_con_ia,
+    }
+    umbral["cumplido"] = all((
+        estudiantes_cuatro_sesiones >= umbral["estudiantes_objetivo"],
+        metricas["sesiones"] >= umbral["sesiones_objetivo"],
+        metricas["ia_total"] >= umbral["interacciones_objetivo"],
+        estudiantes_con_ia >= umbral["usuarios_ia_objetivo"],
+    ))
+
     estudiantes_con_sesion = sum(
         1 for fila in filas_estudiantes if fila["sesiones"] > 0
     )
@@ -266,4 +285,10 @@ def panel():
         objetivos=objetivos,
         estudiantes=filas_estudiantes,
         actividades=filas_actividades,
+        umbral=umbral,
+        interacciones_detalle=sorted(
+            interacciones, key=lambda item: item.creado_en, reverse=True
+        )[:50],
+        usuarios_por_id={item.id: item for item in estudiantes},
+        actividades_por_id={item.id: item for item in actividades},
     )

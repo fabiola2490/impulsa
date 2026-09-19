@@ -58,6 +58,9 @@ def create_app():
     app.register_blueprint(ia_bp)
     app.register_blueprint(reportes_bp)
 
+    from app.commands import registrar_comandos
+    registrar_comandos(app)
+
     @app.before_request
     def cargar_usuario_actual():
         usuario_id = session.get("usuario_id")
