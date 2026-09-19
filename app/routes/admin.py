@@ -27,7 +27,10 @@ def datos_prueba_analisis():
             return render_template("admin/datos_prueba_analisis.html")
 
         password_aleatoria = secrets.token_urlsafe(24)
-        comando.callback(confirmar=True, password=password_aleatoria)
+        generador = comando.callback
+        while hasattr(generador, "__wrapped__"):
+            generador = generador.__wrapped__
+        generador(confirmar=True, password=password_aleatoria)
         flash(
             "Se generaron 20 estudiantes sintéticos, 80 sesiones y 40 interacciones de IA.",
             "success",
