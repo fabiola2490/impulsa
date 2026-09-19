@@ -24,7 +24,7 @@ El comando crea o reemplaza solamente las cuentas técnicas `participante.contro
 1. Iniciar sesión como administradora o docente.
 2. Abrir `https://impulsa-c4c4.onrender.com/reportes`.
 3. Seleccionar el curso usado por el comando.
-4. Verificar el bloque **Umbral para el análisis del asistente**.
+4. Verificar el bloque **Datos disponibles para el análisis del asistente**.
 5. Revisar **Seguimiento por estudiante** e **Interacciones registradas con el asistente**.
 
 ## Revisar en PostgreSQL y Visual Studio Code
