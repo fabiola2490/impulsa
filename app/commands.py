@@ -167,7 +167,7 @@ def registrar_comandos(app):
                         usuario_id=usuario.id,
                         actividad_id=actividad.id,
                         sesion_id=sesion.id,
-                        tipo_ayuda="explicacion" if numero_ia == 1 else "depuracion",
+                        tipo_ayuda="explicacion" if numero_ia == 1 else "resolucion_error",
                         consulta=(
                             "Consulta sintética para explicar una función."
                             if numero_ia == 1
