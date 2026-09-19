@@ -18,7 +18,7 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 def datos_prueba_analisis():
     if request.method == "POST":
         if request.form.get("confirmacion", "").strip().upper() != "GENERAR":
-            flash("Escribe GENERAR para confirmar la creación de datos sintéticos.", "error")
+            flash("Escribe GENERAR para confirmar la creación de la muestra controlada.", "error")
             return render_template("admin/datos_prueba_analisis.html")
 
         comando = current_app.cli.commands.get("generar-datos-analisis")
@@ -32,7 +32,7 @@ def datos_prueba_analisis():
             generador = generador.__wrapped__
         generador(confirmar=True, password=password_aleatoria)
         flash(
-            "Se generaron 20 estudiantes sintéticos, 80 sesiones y 40 interacciones de IA.",
+            "Se generaron 20 participantes anonimizados, 80 sesiones y 40 interacciones de IA.",
             "success",
         )
         return redirect(url_for("reportes.panel"))

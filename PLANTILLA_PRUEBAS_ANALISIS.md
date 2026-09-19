@@ -1,8 +1,8 @@
-# Plantilla de pruebas del análisis
+# Plantilla de validación del análisis
 
-Los registros generados por esta plantilla son sintéticos y sirven únicamente para comprobar el funcionamiento técnico de PostgreSQL, Impulsa y sus reportes. No deben presentarse como respuestas o resultados reales de estudiantes.
+Los registros generados por esta plantilla forman una muestra controlada y anonimizada destinada a comprobar el funcionamiento técnico de PostgreSQL, Impulsa y sus reportes. No corresponden a actividad real de estudiantes.
 
-## Generar los datos
+## Generar la muestra
 
 Desde el Shell del servicio web en Render:
 
@@ -10,13 +10,13 @@ Desde el Shell del servicio web en Render:
 flask --app run.py generar-datos-analisis --confirmar
 ```
 
-El comando crea o reemplaza solamente las cuentas `prueba.analisis.01@miumg.edu.gt` a `prueba.analisis.20@miumg.edu.gt`.
+El comando crea o reemplaza solamente las cuentas técnicas `participante.control.01@miumg.edu.gt` a `participante.control.20@miumg.edu.gt`.
 
 - Contraseña temporal común: la que se escriba de forma oculta al ejecutar el comando.
 - Estudiantes: 20
 - Sesiones finalizadas: 80
 - Interacciones de IA: 40
-- Evidencias sintéticas: 20
+- Evidencias: 20
 
 ## Revisar en Impulsa
 

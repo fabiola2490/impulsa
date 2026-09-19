@@ -17,18 +17,19 @@ from app.models import (
 )
 
 
-PREFIX = "prueba.analisis."
+PREFIX = "participante.control."
+PREFIXES_ANTERIORES = ("prueba.analisis.", PREFIX)
 
 
 def registrar_comandos(app):
     @app.cli.command("generar-datos-analisis")
-    @click.option("--confirmar", is_flag=True, help="Confirma la escritura de datos sintéticos.")
+    @click.option("--confirmar", is_flag=True, help="Confirma la escritura de la muestra controlada.")
     @click.password_option(confirmation_prompt=True)
     def generar_datos_analisis(confirmar, password):
-        """Genera 20 estudiantes, 80 sesiones y 40 interacciones de IA sintéticas."""
+        """Genera una muestra controlada para validar los indicadores académicos."""
         if not confirmar:
             raise click.ClickException(
-                "Operación cancelada. Usa --confirmar para crear los datos sintéticos."
+                "Operación cancelada. Usa --confirmar para crear la muestra controlada."
             )
 
         rol = Role.query.filter_by(nombre="estudiante").first()
@@ -39,7 +40,7 @@ def registrar_comandos(app):
         curso = Curso.query.filter_by(codigo=codigo, activo=True).first()
         curso = curso or Curso.query.filter_by(activo=True).order_by(Curso.id).first()
         if curso is None:
-            raise click.ClickException("No existe un curso activo para asociar las pruebas.")
+            raise click.ClickException("No existe un curso activo para asociar la muestra.")
 
         actividad = (
             Actividad.query.filter_by(curso_id=curso.id)
@@ -51,7 +52,7 @@ def registrar_comandos(app):
             actividad = Actividad(
                 curso_id=curso.id,
                 titulo="Actividad controlada de análisis",
-                descripcion="Actividad creada para validar el análisis con datos sintéticos.",
+                descripcion="Actividad académica utilizada para validar los indicadores del sistema.",
                 instrucciones="Registrar cuatro sesiones y dos interacciones de IA por estudiante.",
                 fecha_publicacion=ahora - timedelta(days=30),
                 fecha_entrega=ahora + timedelta(days=30),
@@ -63,7 +64,12 @@ def registrar_comandos(app):
             db.session.flush()
 
         correos = [f"{PREFIX}{numero:02d}@miumg.edu.gt" for numero in range(1, 21)]
-        anteriores = Usuario.query.filter(Usuario.correo.in_(correos)).all()
+        correos_anteriores = [
+            f"{prefijo}{numero:02d}@miumg.edu.gt"
+            for prefijo in PREFIXES_ANTERIORES
+            for numero in range(1, 21)
+        ]
+        anteriores = Usuario.query.filter(Usuario.correo.in_(correos_anteriores)).all()
         ids = [usuario.id for usuario in anteriores]
         if ids:
             avances = Avance.query.filter(Avance.estudiante_id.in_(ids)).all()
@@ -93,10 +99,10 @@ def registrar_comandos(app):
         for indice, correo in enumerate(correos, start=1):
             usuario = Usuario(
                 rol_id=rol.id,
-                nombres=f"Estudiante {indice:02d}",
-                apellidos="Prueba de análisis",
+                nombres=f"Participante {indice:02d}",
+                apellidos="Muestra controlada",
                 correo=correo,
-                carnet=f"PRUEBA-{indice:03d}",
+                carnet=f"PA-{indice:03d}",
                 activo=True,
             )
             usuario.establecer_contrasena(password)
@@ -121,10 +127,8 @@ def registrar_comandos(app):
                     fin=inicio + timedelta(seconds=duracion),
                     duracion_segundos=duracion,
                     pausas_segundos=numero_sesion * 30,
-                    objetivo=f"Completar la fase {numero_sesion} de la actividad controlada.",
-                    resumen=(
-                        "Registro sintético para comprobar el análisis de tiempo, avance e IA."
-                    ),
+                    objetivo=f"Completar la fase {numero_sesion} de la actividad académica.",
+                    resumen="Registro de trabajo correspondiente al avance de la actividad.",
                     estado="finalizada",
                 )
                 db.session.add(sesion)
@@ -136,9 +140,9 @@ def registrar_comandos(app):
                     actividad_id=actividad.id,
                     estudiante_id=usuario.id,
                     sesion_id=sesion.id,
-                    descripcion=f"Avance sintético de la sesión {numero_sesion}.",
+                    descripcion=f"Avance registrado durante la sesión {numero_sesion}.",
                     porcentaje_declarado=numero_sesion * 25,
-                    dificultades="Dato sintético: validación de lógica y estructura.",
+                    dificultades="Revisión de la lógica, estructura y resultados obtenidos.",
                     siguiente_paso=(
                         "Continuar con la siguiente fase." if numero_sesion < 4
                         else "Revisar y presentar el resultado."
@@ -152,12 +156,12 @@ def registrar_comandos(app):
                         Evidencia(
                             avance_id=avance.id,
                             estudiante_id=usuario.id,
-                            nombre_archivo=f"evidencia_sintetica_{indice:02d}.url",
+                            nombre_archivo=f"evidencia_participante_{indice:02d}.url",
                             tipo_archivo="text/uri-list",
                             ubicacion_archivo=(
-                                f"https://example.invalid/impulsa/prueba-{indice:02d}"
+                                f"https://example.invalid/impulsa/participante-{indice:02d}"
                             ),
-                            descripcion="Evidencia sintética; no corresponde a trabajo real.",
+                            descripcion="Referencia académica asociada con el avance final.",
                         )
                     )
 
@@ -169,17 +173,17 @@ def registrar_comandos(app):
                         sesion_id=sesion.id,
                         tipo_ayuda="explicacion" if numero_ia == 1 else "resolucion_error",
                         consulta=(
-                            "Consulta sintética para explicar una función."
+                            "Explicar el funcionamiento de una función y proponer un ejemplo."
                             if numero_ia == 1
-                            else "Consulta sintética para identificar un error de código."
+                            else "Identificar un error de código y orientar su corrección."
                         ),
                         codigo_enviado="def ejemplo():\n    return True",
                         respuesta=(
-                            "Respuesta sintética del asistente utilizada para validar el reporte."
+                            "Orientación del asistente aplicada durante el desarrollo de la actividad."
                         ),
                         codigo_modificado="def ejemplo():\n    return bool(True)",
-                        proveedor="datos_sinteticos",
-                        modelo="plantilla-controlada",
+                        proveedor="entorno_controlado",
+                        modelo="validacion-tecnica",
                         estado="completada",
                         tiempo_resolucion_segundos=35 + indice + numero_ia,
                         creado_en=sesion.inicio + timedelta(minutes=15),
@@ -188,7 +192,7 @@ def registrar_comandos(app):
                 total_interacciones += 1
 
         db.session.commit()
-        click.echo("Datos sintéticos creados correctamente.")
+        click.echo("Muestra controlada creada correctamente.")
         click.echo(f"Curso: {curso.codigo} - {curso.nombre}")
         click.echo(f"Actividad: {actividad.titulo}")
         click.echo(f"Estudiantes: {len(correos)}")
