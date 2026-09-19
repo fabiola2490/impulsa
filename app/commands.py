@@ -19,6 +19,10 @@ from app.models import (
 
 PREFIX = "participante.control."
 PREFIXES_ANTERIORES = ("prueba.analisis.", PREFIX)
+PROGRESOS_FINALES = (
+    45, 50, 55, 60, 65, 70, 75, 80, 85, 90,
+    95, 100, 55, 65, 75, 85, 95, 60, 80, 100,
+)
 
 
 def registrar_comandos(app):
@@ -97,6 +101,7 @@ def registrar_comandos(app):
         total_sesiones = 0
         total_interacciones = 0
         for indice, correo in enumerate(correos, start=1):
+            progreso_final = PROGRESOS_FINALES[indice - 1]
             usuario = Usuario(
                 rol_id=rol.id,
                 nombres=f"Participante {indice:02d}",
@@ -119,14 +124,14 @@ def registrar_comandos(app):
                     days=indice - 1,
                     hours=numero_sesion * 2,
                 )
-                duracion = 2700 + indice * 35 + numero_sesion * 240
+                duracion = 1800 + (indice % 5) * 420 + numero_sesion * 180
                 sesion = SesionTrabajo(
                     estudiante_id=usuario.id,
                     actividad_id=actividad.id,
                     inicio=inicio,
                     fin=inicio + timedelta(seconds=duracion),
                     duracion_segundos=duracion,
-                    pausas_segundos=numero_sesion * 30,
+                    pausas_segundos=(indice % 3) * 60 + numero_sesion * 30,
                     objetivo=f"Completar la fase {numero_sesion} de la actividad académica.",
                     resumen="Registro de trabajo correspondiente al avance de la actividad.",
                     estado="finalizada",
@@ -141,17 +146,23 @@ def registrar_comandos(app):
                     estudiante_id=usuario.id,
                     sesion_id=sesion.id,
                     descripcion=f"Avance registrado durante la sesión {numero_sesion}.",
-                    porcentaje_declarado=numero_sesion * 25,
+                    porcentaje_declarado=round(
+                        progreso_final * numero_sesion / 4
+                    ),
                     dificultades="Revisión de la lógica, estructura y resultados obtenidos.",
                     siguiente_paso=(
                         "Continuar con la siguiente fase." if numero_sesion < 4
-                        else "Revisar y presentar el resultado."
+                        else (
+                            "Presentar el resultado final."
+                            if progreso_final == 100
+                            else "Completar los elementos pendientes de la actividad."
+                        )
                     ),
                     registrado_en=sesion.fin,
                 )
                 db.session.add(avance)
                 db.session.flush()
-                if numero_sesion == 4:
+                if numero_sesion == 4 and progreso_final >= 75:
                     db.session.add(
                         Evidencia(
                             avance_id=avance.id,
@@ -184,7 +195,11 @@ def registrar_comandos(app):
                         codigo_modificado="def ejemplo():\n    return bool(True)",
                         proveedor="entorno_controlado",
                         modelo="validacion-tecnica",
-                        estado="completada",
+                        estado=(
+                            "pendiente"
+                            if numero_ia == 2 and indice % 4 == 0
+                            else "completada"
+                        ),
                         tiempo_resolucion_segundos=35 + indice + numero_ia,
                         creado_en=sesion.inicio + timedelta(minutes=15),
                     )

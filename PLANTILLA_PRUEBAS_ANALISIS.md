@@ -16,7 +16,8 @@ El comando crea o reemplaza solamente las cuentas técnicas `participante.contro
 - Estudiantes: 20
 - Sesiones finalizadas: 80
 - Interacciones de IA: 40
-- Evidencias: 20
+- Avances finales: entre 45% y 100%
+- Evidencias: asociadas con los avances de 75% o más
 
 ## Revisar en Impulsa
 
