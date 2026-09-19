@@ -280,6 +280,22 @@ def panel():
     ]
 
     docente = db.session.get(Usuario, curso.docente_id)
+    correos_autorizados = current_app.config.get("AUTHORIZED_VALIDATION_EMAILS", ())
+    usuarios_autorizados = (
+        Usuario.query.filter(Usuario.correo.in_(correos_autorizados)).all()
+        if correos_autorizados else []
+    )
+    autorizados_por_correo = {item.correo: item for item in usuarios_autorizados}
+    participantes_autorizados = []
+    for correo in correos_autorizados:
+        usuario = autorizados_por_correo.get(correo)
+        sesiones_usuario = sesiones_estudiante.get(usuario.id, []) if usuario else []
+        participantes_autorizados.append({
+            "correo": correo,
+            "registrado": usuario is not None,
+            "sesiones": len(sesiones_usuario),
+            "con_actividad": bool(sesiones_usuario),
+        })
     return render_template(
         "reportes/panel.html",
         cursos=cursos,
@@ -295,4 +311,5 @@ def panel():
         )[:50],
         usuarios_por_id={item.id: item for item in estudiantes},
         actividades_por_id={item.id: item for item in actividades},
+        participantes_autorizados=participantes_autorizados,
     )

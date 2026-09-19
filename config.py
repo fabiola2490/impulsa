@@ -32,6 +32,11 @@ class Config:
     REGISTRATION_COURSE_CODE = os.getenv(
         "REGISTRATION_COURSE_CODE", "2490-049-A"
     ).strip()
+    AUTHORIZED_VALIDATION_EMAILS = tuple(
+        email.strip().lower()
+        for email in os.getenv("AUTHORIZED_VALIDATION_EMAILS", "").split(",")
+        if email.strip()
+    )
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
     OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini")
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
