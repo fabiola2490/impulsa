@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from functools import wraps
 
-from flask import Blueprint, flash, g, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, g, redirect, render_template, request, url_for
 
 from app.extensions import db
 from app.models import (
@@ -51,7 +51,11 @@ def panel():
     curso_id = request.args.get("curso_id", type=int)
     curso = next((item for item in cursos if item.id == curso_id), None)
     if curso is None and cursos:
-        curso = cursos[0]
+        codigo_preferido = current_app.config.get("REGISTRATION_COURSE_CODE")
+        curso = next(
+            (item for item in cursos if item.codigo == codigo_preferido),
+            cursos[0],
+        )
 
     if curso is None:
         return render_template("reportes/panel.html", cursos=[], curso=None)
