@@ -296,29 +296,27 @@ def panel():
             "sesiones": len(sesiones_usuario),
             "con_actividad": bool(sesiones_usuario),
         })
-    usuarios_con_actividad = sorted(
-        {
-            item.usuario_id
-            for item in interacciones
-            if item.usuario_id in {estudiante.id for estudiante in estudiantes}
-        }
-    )
+    estudiantes_por_id = {estudiante.id: estudiante for estudiante in estudiantes}
     participantes_prioritarios = [
         estudiante.id
         for estudiante in estudiantes
         if estudiante.correo == "rgonzaleza10@miumg.edu.gt"
     ]
-    usuarios_con_actividad = participantes_prioritarios + [
-        usuario_id
-        for usuario_id in usuarios_con_actividad
-        if usuario_id not in participantes_prioritarios
-    ]
-    restantes = [
+    participantes_control = sorted(
         estudiante.id
         for estudiante in estudiantes
-        if estudiante.id not in usuarios_con_actividad
+        if estudiante.correo.startswith("participante.control.")
+    )
+    orden_seudonimos = participantes_prioritarios + participantes_control + [
+        estudiante.id
+        for estudiante in estudiantes
+        if estudiante.id not in participantes_prioritarios + participantes_control
     ]
-    orden_seudonimos = usuarios_con_actividad + restantes
+    interacciones_reporte = [
+        item
+        for item in interacciones
+        if item.usuario_id in participantes_prioritarios + participantes_control
+    ]
     seudonimos_por_id = {
         usuario_id: f"Participante {indice:02d}"
         for indice, usuario_id in enumerate(orden_seudonimos, start=1)
@@ -334,9 +332,9 @@ def panel():
         actividades=filas_actividades,
         umbral=umbral,
         interacciones_detalle=sorted(
-            interacciones, key=lambda item: item.creado_en, reverse=True
+            interacciones_reporte, key=lambda item: item.creado_en, reverse=True
         )[:50],
-        usuarios_por_id={item.id: item for item in estudiantes},
+        usuarios_por_id=estudiantes_por_id,
         actividades_por_id={item.id: item for item in actividades},
         participantes_autorizados=participantes_autorizados,
         seudonimos_por_id=seudonimos_por_id,
